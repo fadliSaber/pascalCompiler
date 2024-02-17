@@ -87,7 +87,7 @@ SYMBOLE TABLESYM[TABLEINDEX];
 
 int OFFSET = -1;
 int IND_DER_SYM_ACC = 0;
-int PC = 1;
+int PC = 0;
 int SP;
 int index_Mots = 0;
 int choice;
@@ -330,6 +330,7 @@ int RechercherSym(char mot[20]){
             return i;
         }
     }
+    return -1;
 }
 
 void AJOUTER(){
@@ -377,16 +378,6 @@ void Test_entrer(CODES_LEX cl,CODES_ERR COD_ERR){
     strcpy(TABLESYM[IND_DER_SYM_ACC].NOM,SYM_COUR.NOM);
 }
 
-void GENERER1(MNEMONIQUES M) {
-    if (PC == TAILLECODE) {
-        printf("ERROR: PC is equal to TAILLECODE.\n");
-    }else {
-        PC = PC + 1;
-        PCODE[PC].MNE = M;
-    }
-}
-
-
 void GENERER2(MNEMONIQUES M, int A) {
     if (PC == TAILLECODE) {
         printf("ERROR: PC is equal to TAILLECODE.\n");
@@ -396,6 +387,16 @@ void GENERER2(MNEMONIQUES M, int A) {
         PCODE[PC].SUITE = A;
     }
 }
+
+void GENERER1(MNEMONIQUES M) {
+    if (PC == TAILLECODE) {
+        printf("ERROR: PC is equal to TAILLECODE.\n");
+    }else {
+        GENERER2(M,-1);
+    }
+}
+
+
 
 
 
@@ -825,7 +826,7 @@ int main(){
         printf("BRAVO: le programme est correcte!!!\n");
         printf("PCODE du programme :\n");
         for(int i = 0;i<PC+1;i++){
-            if(PCODE[i].SUITE!=0) printf("%s %d\n",MNEString(PCODE[i].MNE),PCODE[i].SUITE);
+            if(PCODE[i].SUITE!=-1) printf("%s %d\n",MNEString(PCODE[i].MNE),PCODE[i].SUITE);
             else printf("%s\n",MNEString(PCODE[i].MNE));
         }
     }

@@ -1,8 +1,11 @@
 program test11;
-const toto=21; titi=13;
-var x,y;
+var A,B;
 Begin
-    x:=toto;
-    read(y);
-    write(x)
+    repeat
+        Begin
+            read(A);
+            B:=A+B
+        end
+    until A = 0;
+    write(B);
 end.
