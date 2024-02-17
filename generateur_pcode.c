@@ -8,6 +8,7 @@
 #define TAILLECODE 100
 
 
+
 typedef enum {
     ID_TOKEN, PROGRAM_TOKEN, CONST_TOKEN, VAR_TOKEN,
     BEGIN_TOKEN, END_TOKEN, IF_TOKEN, THEN_TOKEN,
@@ -33,9 +34,40 @@ typedef enum {
     NUM_ERR, ERREUR_ERR, FIN_ERR, EG_ERR,
     CONST_VAR_BEGIN_ERR, VAR_BEGIN_ERR, REPEAT_ERR, UNTIL_ERR,
     FOR_ERR, ELSE_ERR, CASE_ERR, OF_ERR,
-    INTO_ERR, DOWNTO_ERR, DDOT_ERR
+    INTO_ERR, DOWNTO_ERR, DDOT_ERR, DD_ERR, ND_ERR, ID_NUM_PO_ERR
 } CODES_ERR;
 
+FILE *fichier;
+char Car_Cour;
+
+void PROGRAM();
+void BLOCK();
+void CONSTS();
+void VARS();
+void INSTS();
+void INST();
+void AFFEC();
+void SI();
+void REPETER();
+void POUR();
+void TANTQUE();
+void ECRIRE();
+void LIRE();
+void COND();
+void RELOP();
+void EXPR();
+void ADDOP();
+void TERM();
+void MULOP();
+void FACT();
+void CAS();
+
+void Lire_Car();
+void Erreur(CODES_ERR code);
+void Test_Symbole(CODES_LEX cl, CODES_ERR COD_ERR);
+void Sym_Suiv();
+void lire_mot();
+void lire_nombre();
 
 typedef struct
 {
@@ -76,9 +108,221 @@ typedef struct{
     int SUITE;
 }INSTRUCTION;
 
-INSTRUCTION PCODE[TAILLECODE]
+INSTRUCTION PCODE[TAILLECODE];
+TSym_Cour sym;
+
+void Lire_Car() {
+    Car_Cour = fgetc(fichier);
+}
+
+void lire_nombre() {
+    char nombre[11];
+    int indice = 0;
+    nombre[indice++] = Car_Cour;
+    Lire_Car();
+    while (isdigit(Car_Cour)) {
+        nombre[indice++] = Car_Cour;
+        Lire_Car();
+    }
+    nombre[indice] = '\0';
+    SYM_COUR.CODE = NUM_TOKEN;
+    strcpy(SYM_COUR.NOM, nombre);
+}
 
 
+void lire_mot(){
+    char mot[20];
+    int indice = 0;
+    mot[indice++] = Car_Cour;
+    Lire_Car();
+    while (isalpha(Car_Cour) || isdigit(Car_Cour)){
+        mot[indice++] = Car_Cour;
+        Lire_Car();
+    }
+    mot[indice] = '\0';
+    if (stricmp(mot, "program") == 0){
+        SYM_COUR.CODE = PROGRAM_TOKEN;
+    }
+    else if (stricmp(mot, "const") == 0){
+        SYM_COUR.CODE = CONST_TOKEN;
+    }
+    else if (stricmp(mot, "var") == 0){
+        SYM_COUR.CODE = VAR_TOKEN;
+    }
+    else if (stricmp(mot, "begin") == 0){
+        SYM_COUR.CODE = BEGIN_TOKEN;
+    }
+    else if (stricmp(mot, "end") == 0){
+        SYM_COUR.CODE = END_TOKEN;
+    }
+    else if (stricmp(mot, "if") == 0){
+        SYM_COUR.CODE = IF_TOKEN;
+    }
+    else if (stricmp(mot, "then") == 0){
+        SYM_COUR.CODE = THEN_TOKEN;
+    }
+    else if (stricmp(mot, "while") == 0){
+        SYM_COUR.CODE = WHILE_TOKEN;
+    }
+    else if (stricmp(mot, "do") == 0){
+        SYM_COUR.CODE = DO_TOKEN;
+    }
+    else if (stricmp(mot, "read") == 0){
+        SYM_COUR.CODE = READ_TOKEN;
+    }
+    else if (stricmp(mot, "write") == 0){
+        SYM_COUR.CODE = WRITE_TOKEN;
+    }
+    else if (stricmp(mot, "else") == 0){
+        SYM_COUR.CODE = ELSE_TOKEN;
+    }
+    else if (stricmp(mot, "repeat") == 0){
+        SYM_COUR.CODE = REPEAT_TOKEN;
+    }
+    else if (stricmp(mot, "until") == 0){
+        SYM_COUR.CODE = UNTIL_TOKEN;
+    }
+    else if (stricmp(mot, "for") == 0){
+        SYM_COUR.CODE = FOR_TOKEN;
+    }
+    else if (stricmp(mot, "case") == 0){
+        SYM_COUR.CODE = CASE_TOKEN;
+    }
+    else if (stricmp(mot, "of") == 0){
+        SYM_COUR.CODE = OF_TOKEN;
+    }
+    else{
+        SYM_COUR.CODE = ID_TOKEN;
+    }
+    strcpy(SYM_COUR.NOM, mot);
+}
+void Sym_Suiv(){
+    while (Car_Cour == ' ' || Car_Cour == '\n' || Car_Cour == '\t'){
+        Lire_Car();
+    }
+    if (isalpha(Car_Cour)){
+        lire_mot();
+    }
+    else if (isdigit(Car_Cour)){
+        lire_nombre();
+    }
+    else{
+        char s[2];
+        s[0] = Car_Cour;
+        switch (Car_Cour){
+        case ';':
+            SYM_COUR.CODE = PV_TOKEN;
+            Lire_Car();
+            break;
+
+        case '+':
+            SYM_COUR.CODE = PLUS_TOKEN;
+            Lire_Car();
+            break;
+
+        case '-':
+            SYM_COUR.CODE = MOINS_TOKEN;
+            Lire_Car();
+            break;
+
+        case '*':
+            SYM_COUR.CODE = MULT_TOKEN;
+            Lire_Car();
+            break;
+
+        case '/':
+            SYM_COUR.CODE = DIV_TOKEN;
+            Lire_Car();
+            break;
+
+        case ',':
+            SYM_COUR.CODE = VIR_TOKEN;
+            Lire_Car();
+            break;
+
+        case ':':
+            Lire_Car();
+            if (Car_Cour == '='){
+                s[1] = '=';
+                s[2] = '\0';
+                SYM_COUR.CODE = AFF_TOKEN;
+                Lire_Car();
+            }
+            else{
+                SYM_COUR.CODE = DDOT_TOKEN;
+            }
+            break;
+
+        case '<':
+            Lire_Car();
+            if (Car_Cour == '='){
+                s[1] = '=';
+                s[2] = '\0';
+                SYM_COUR.CODE = INFEG_TOKEN;
+                Lire_Car();
+            }
+            else if (Car_Cour == '>'){
+                s[1] = '=';
+                s[2] = '\0';
+                SYM_COUR.CODE = DIFF_TOKEN;
+                Lire_Car();
+            }
+            else{
+                SYM_COUR.CODE = INF_TOKEN;
+            }
+            break;
+
+        case '>':
+            Lire_Car();
+            if (Car_Cour == '='){
+                s[1] = '=';
+                s[2] = '\0';
+                SYM_COUR.CODE = SUPEG_TOKEN;
+                Lire_Car();
+            }
+            else{
+                SYM_COUR.CODE = SUP_TOKEN;
+            }
+            break;
+
+        case '(':
+            SYM_COUR.CODE = PO_TOKEN;
+            Lire_Car();
+            break;
+        case '=':
+            SYM_COUR.CODE = EG_TOKEN;
+            Lire_Car();
+            break;
+
+        case ')':
+            SYM_COUR.CODE = PF_TOKEN;
+            Lire_Car();
+            break;
+
+        case '.':
+            SYM_COUR.CODE = PT_TOKEN;
+            Lire_Car();
+            break;
+
+        case EOF:
+            SYM_COUR.CODE = EOF_TOKEN;
+            break;
+
+        default:
+            SYM_COUR.CODE = ERREUR_TOKEN;
+            Lire_Car();
+        }
+        strcpy(SYM_COUR.NOM,s);
+    }
+    printf("Symbol: %s\n", SYM_COUR.NOM);
+}
+
+void Erreur(CODES_ERR code){
+    printf("Erreur: %d\n", code);
+    printf("Current Token: %d\n", SYM_COUR.CODE);
+    printf("Current Lexeme: %s\n", SYM_COUR.NOM);
+    exit(EXIT_FAILURE);
+}
 
 int RechercherSym(char mot[20]){
     for(int i = 0;i<index_Mots;i++){
@@ -91,7 +335,7 @@ int RechercherSym(char mot[20]){
 void AJOUTER(){
     TABLESYM[IND_DER_SYM_ACC].ADRESSE = ++OFFSET;
     TABLESYM[IND_DER_SYM_ACC].CLASSE = ID_TOKEN;
-    TABLESYM[IND_DER_SYM_ACC].NOM = sym.NOM;
+    strcpy(TABLESYM[IND_DER_SYM_ACC].NOM,sym.NOM);
     index_Mots++;
 }
 
@@ -102,7 +346,7 @@ void Codage_Lex(char mot[20]) {
 
     if (indice_token != -1) {
         if ((AVANT_BEGIN == 1) && (indice_token > 10)) {
-            ERREUR(DD_ERR);
+            Erreur(DD_ERR);
         } else {
             IND_DER_SYM_ACC = indice_token;
         }
@@ -111,7 +355,7 @@ void Codage_Lex(char mot[20]) {
             IND_DER_SYM_ACC = index_Mots;
             AJOUTER();
         } else {
-            ERREUR(ND_ERR);
+            Erreur(ND_ERR);
         }
     }
 }
@@ -126,16 +370,11 @@ void Test_Symbole(CODES_LEX cl, CODES_ERR COD_ERR){
     }
 }
 
-void Erreur(CODES_ERR code){
-    printf("Erreur: %d\n", code);
-    printf("Current Token: %d\n", SYM_COUR.CODE);
-    printf("Current Lexeme: %s\n", SYM_COUR.NOM);
-    exit(EXIT_FAILURE);
-}
+
 
 void Test_entrer(CODES_LEX cl,CODES_ERR COD_ERR){
     TABLESYM[IND_DER_SYM_ACC].CLASSE = cl;
-    TABLESYM[IND_DER_SYM_ACC].NOM = SYM_COUR.NOM;
+    strcpy(TABLESYM[IND_DER_SYM_ACC].NOM,SYM_COUR.NOM);
 }
 
 void GENERER1(MNEMONIQUES M) {
@@ -159,7 +398,6 @@ void GENERER2(MNEMONIQUES M, int A) {
 }
 
 
-TSym_Cour sym;
 
 void BLOCK(){
     OFFSET = 0;
@@ -172,17 +410,19 @@ void BLOCK(){
 
 void PROGRAM(){
     Test_Symbole(PROGRAM_TOKEN, PROGRAM_ERR);
-    Test_entrer(ID_TOKEN, ID_ERR);
+    Test_Symbole(ID_TOKEN, ID_ERR);
     Test_Symbole(PV_TOKEN, PV_ERR);
     BLOCK();
     GENERER1(HLT);
-    Test_entrer(PT_TOKEN, PT_ERR);
+    Test_Symbole(PT_TOKEN, PT_ERR);
 }
 
 void AFFEC(){
+    sym = SYM_COUR;
     Test_Symbole(ID_TOKEN, ID_ERR);
+    Codage_Lex(sym.NOM);
     GENERER2(LDA,TABLESYM[IND_DER_SYM_ACC].ADRESSE);
-    Test_Symbole(AFFECT_TOKEN, AFFECT_ERR);
+    Test_Symbole(AFF_TOKEN, AFF_ERR);
     EXPR();
     GENERER1(STO);
 }
@@ -199,10 +439,10 @@ void EXPR(){
 
 void TERM(){
     FACT();
-    while ((SYM_COUR.CODE==MULTI_TOKEN) || (SYM_COUR.CODE==DIV_TOKEN)){
+    while ((SYM_COUR.CODE==MULT_TOKEN) || (SYM_COUR.CODE==DIV_TOKEN)){
         Sym_Suiv();
         FACT();
-        if(SYM_COUR.CODE==MULTI_TOKEN) GENERER1(MUL);
+        if(SYM_COUR.CODE==MULT_TOKEN) GENERER1(MUL);
         else GENERER1(DIV);
     }
 }
@@ -210,13 +450,14 @@ void TERM(){
 void FACT(){
     switch (SYM_COUR.CODE) {
         case ID_TOKEN:
+            Codage_Lex(SYM_COUR.NOM);
             GENERER2(LDA, TABLESYM[IND_DER_SYM_ACC].ADRESSE);
             GENERER1(LDV);
             Sym_Suiv();
             break;
 
         case NUM_TOKEN:
-            GENERER2(LDI, SYM_COUR.NOM);
+            GENERER2(LDI, atoi(SYM_COUR.NOM));
             Sym_Suiv();
             break;
 
@@ -249,12 +490,16 @@ void ECRIRE(){
 void LIRE(){
     Test_Symbole(READ_TOKEN, READ_ERR);
     Test_Symbole(PO_TOKEN, PO_ERR);
+    sym = SYM_COUR;
     Test_Symbole(ID_TOKEN, ID_ERR);
+    Codage_Lex(sym.NOM);
     GENERER2(LDA, TABLESYM[IND_DER_SYM_ACC].ADRESSE);
     GENERER1(INN);
     while (SYM_COUR.CODE==VIR_TOKEN){
         Sym_Suiv();
+        sym = SYM_COUR;
         Test_Symbole(ID_TOKEN, ID_ERR);
+        Codage_Lex(sym.NOM);
         GENERER2(LDA, TABLESYM[IND_DER_SYM_ACC].ADRESSE);
         GENERER1(INN);
     }
@@ -347,7 +592,7 @@ void TANTQUE(){
     Test_Symbole(DO_TOKEN, DO_ERR);
     INST();
     GENERER2(BRN, LABEL_BRN);
-    PCODE[INDICE_BZE].SUITE=PC+1;
+    PCODE[IND_BZE].SUITE=PC+1;
 }
 
 
@@ -355,14 +600,14 @@ void CONSTS() {
     switch (SYM_COUR.CODE) {
         case CONST_TOKEN: {
             Sym_Suiv();
-            sym = SYM_COUR:
+            sym = SYM_COUR;
             Test_Symbole(ID_TOKEN, ID_ERR);
             Codage_Lex(sym.NOM);
             GENERER2(LDA, TABLESYM[IND_DER_SYM_ACC].ADRESSE);
             Test_Symbole(EG_TOKEN, EG_ERR);
             sym = SYM_COUR;
             Test_Symbole(NUM_TOKEN, NUM_ERR);
-            GENERER2(LDI, sym.NOM);
+            GENERER2(LDI, atoi(sym.NOM));
             GENERER1(STO);
             Test_Symbole(PV_TOKEN, PV_ERR);
 
@@ -374,7 +619,7 @@ void CONSTS() {
                 Test_Symbole(EG_TOKEN, EG_ERR);
                 sym = SYM_COUR;
                 Test_Symbole(NUM_TOKEN, NUM_ERR);
-                GENERER2(LDI, sym.NOM);
+                GENERER2(LDI, atoi(sym.NOM));
                 GENERER1(STO);
                 Test_Symbole(PV_TOKEN, PV_ERR);
             };
@@ -466,4 +711,132 @@ void INST(){
     default:
         break;
     }
+}
+void POUR(){
+    Test_Symbole(FOR_TOKEN, FOR_ERR);
+    AFFEC();
+    switch (SYM_COUR.CODE){
+        case DOWNTO_TOKEN:
+            Test_Symbole(DOWNTO_TOKEN, DOWNTO_ERR);
+            break;
+        case INTO_TOKEN:
+            Test_Symbole(INTO_TOKEN, INTO_ERR);
+            break;
+        default:
+            Erreur(ERREUR_ERR);
+            break;
+    }
+
+    Test_Symbole(NUM_TOKEN, NUM_ERR);
+    Test_Symbole(DO_TOKEN, DO_ERR);
+    INST();
+}
+
+void REPETER(){
+    Test_Symbole(REPEAT_TOKEN, REPEAT_ERR);
+    INST();
+    Test_Symbole(UNTIL_TOKEN, UNTIL_ERR);
+    COND();
+}
+
+void CAS(){
+    Test_Symbole(CASE_TOKEN, CASE_ERR);
+    sym = SYM_COUR;
+    Test_Symbole(ID_TOKEN,ID_ERR);
+    Codage_Lex(sym.NOM);
+    GENERER2(LDA, TABLESYM[IND_DER_SYM_ACC].ADRESSE);
+    GENERER1(LDV);
+    Test_Symbole(OF_TOKEN, OF_TOKEN);
+    Test_Symbole(NUM_TOKEN, NUM_ERR);
+    Test_Symbole(DDOT_TOKEN, DDOT_ERR);
+    INST();
+    while (SYM_COUR.CODE == NUM_TOKEN){
+        Sym_Suiv();
+        Test_Symbole(DDOT_TOKEN, DDOT_ERR);
+        INST();
+    }
+    if (SYM_COUR.CODE == ELSE_TOKEN) {
+        Sym_Suiv();
+        INST();
+    }
+    
+    Test_Symbole(END_TOKEN, END_ERR);
+}
+
+const char* MNEString(MNEMONIQUES mne) {
+    switch (mne) {
+        case ADD:
+            return "ADD";
+        case SUB:
+            return "SUB";
+        case MUL:
+            return "MUL";
+        case DIV:
+            return "DIV";
+        case EQL:
+            return "EQL";
+        case NEQ:
+            return "NEQ";
+        case GTR:
+            return "GTR";
+        case LSS:
+            return "LSS";
+        case GEQ:
+            return "GEQ";
+        case LEQ:
+            return "LEQ";
+        case PRN:
+            return "PRN";
+        case INN:
+            return "INN";
+        case INT:
+            return "INT";
+        case LDI:
+            return "LDI";
+        case LDA:
+            return "LDA";
+        case LDV:
+            return "LDV";
+        case STO:
+            return "STO";
+        case BRN:
+            return "BRN";
+        case BZE:
+            return "BZE";
+        case HLT:
+            return "HLT";
+        default:
+            return "UNKNOWN";
+    }
+}
+
+
+int main(){
+    fichier = fopen("program.txt", "r");
+    if (fichier == NULL){
+        perror("Erreur lors de l'ouverture du fichier");
+        return 1;
+    }
+    Lire_Car();
+    Sym_Suiv();
+    PROGRAM();
+    printf("Program execution completed.\n");
+    if (SYM_COUR.CODE == EOF_TOKEN){
+        printf("BRAVO: le programme est correcte!!!\n");
+        printf("PCODE du programme :\n");
+        for(int i = 0;i<PC+1;i++){
+            if(PCODE[i].SUITE!=0) printf("%s %d\n",MNEString(PCODE[i].MNE),PCODE[i].SUITE);
+            else printf("%s\n",MNEString(PCODE[i].MNE));
+        }
+    }
+    else{
+        printf("PAS BRAVO: fin de programme erronée!!!!\n");
+        printf("Current Token: %d\n", SYM_COUR.CODE);
+        printf("Current Lexeme: %s\n", SYM_COUR.NOM);
+        Sym_Suiv();
+    }
+
+    fclose(fichier);
+
+    return 0;
 }
