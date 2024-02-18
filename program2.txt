@@ -1,0 +1,7 @@
+program test11;
+var a;
+Begin
+    read(a);
+    a:=a*2;
+    write(a)
+end.
