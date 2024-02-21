@@ -572,9 +572,7 @@ void MULOP(){
 
 void POUR(){
     Test_Symbole(FOR_TOKEN, FOR_ERR);
-    Test_Symbole(ID_TOKEN, ID_ERR);
-    Test_Symbole(AFF_TOKEN, AFF_ERR);
-    Test_Symbole(NUM_TOKEN, NUM_ERR);
+    AFFEC();
 
     switch (SYM_COUR.CODE){
     case DOWNTO_TOKEN:

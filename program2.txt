@@ -1,7 +1,9 @@
 program test11;
-var a;
+var a,b:integer;
 Begin
-    read(a);
-    a:=a*2;
-    write(a)
+    read(b);
+    for a := b  to 20 do
+    Begin
+        write(a)
+    end;
 end.
